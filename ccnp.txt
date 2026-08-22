@@ -1,0 +1,226 @@
+
+conf t
+
+int e0/0
+sw mo acc
+sw acc vlan 101
+
+vlan 101
+Floor 1
+
+int vlan 101
+ip add 10.100.10.33 255.255.255.224
+ip dhcp exc 10.100.10.33 10.100.10.43
+ip dhcp pool floor1.com
+network 10.100.10.32 255.255.255.224
+default-router 10.100.10.33 255
+no sh
+
+
+A1
+conf t
+vlan 101
+name Floor1
+exit
+
+P1
+conf t
+int e0/0
+ip add dhcp
+no sh
+
+A1
+
+conf t
+
+int e1/0
+sw mo acc
+sw acc vlan 103
+
+vlan 102
+name Floor 3
+
+int vlan 103
+no sh
+ip add 10.100.10.97 255.255.255.224
+ip dhcp exc 10.100.10.97 10.100.10.107
+ip dhcp pool floor3.com
+network 10.100.10.96 255.255.255.224
+default-router 10.100.10.97 255.255.255.224
+
+
+P2
+conf t
+int e1/0
+ip add dhcp
+no sh
+
+
+
+D2
+
+conf t
+
+int e1/0
+sw mo acc
+sw acc vlan 104
+
+vlan 104
+name Floor 4
+
+int vlan 104
+no sh
+ip add 10.100.10.129 255.255.255.224
+ip dhcp exc 10.100.10.129 10.100.10.139
+ip dhcp pool floor4.com
+network 10.100.10.128 255.255.255.224
+default-router 10.100.10.129 255.255.255.224
+
+S2
+conf t
+int e1/0
+ip add dhcp
+no sh
+
+
+
+
+D1
+conf t
+spanning-tree vlan 1-104 root primary
+
+D2
+conf t
+spanning-tree vlan 1-104 root secondary
+
+
+
+TRUNKING and Port Channel
+
+D1
+conf t
+int range e0/1-2
+sw trunk encap dot1q
+sw mode trunk 
+sw trunk allowed vlan 1-104
+channel-group 10 mode active
+channel-protocol lacp
+
+int range e0/0, e0/3
+sw trunk encap dot1q
+sw mode trunk 
+sw trunk allowed vlan 1-104
+channel-group 20 mode active
+channel-protocol lacp
+
+int range e1/2, e1/3
+sw trunk encap dot1q
+sw mode trunk 
+sw trunk allowed vlan 1-104
+channel-group 30 mode active
+channel-protocol lacp
+end
+
+
+D2
+conf t
+int range e1/2, e1/3
+sw trunk encap dot1q
+sw mode trunk 
+sw trunk allowed vlan 1-104
+channel-group 30 mode active
+channel-protocol lacp
+
+
+conf t
+int range e0/1, e0/2
+sw trunk encap dot1q
+sw mode trunk 
+sw trunk allowed vlan 1-104
+channel-group 15 mode active
+channel-protocol lacp
+
+int range e0/0, e0/3
+sw trunk encap dot1q
+sw mode trunk 
+sw trunk allowed vlan 1-104
+channel-group 25 mode active
+channel-protocol lacp
+
+A1
+conf t
+int range e0/1, e0/2
+sw trunk encap dot1q
+sw mode trunk 
+sw trunk allowed vlan 1-104
+channel-group 10 mode active
+channel-protocol lacp
+
+int range e0/3, e1/0
+sw trunk encap dot1q
+sw mode trunk 
+sw trunk allowed vlan 1-104
+channel-group 15 mode active
+channel-protocol lacp
+
+A2
+conf t
+int range e0/0, e0/3
+sw trunk encap dot1q
+sw mode trunk 
+sw trunk allowed vlan 1-104
+channel-group 25 mode active
+channel-protocol lacp
+
+int range e0/1, e0/2
+sw trunk encap dot1q
+sw mode trunk 
+sw trunk allowed vlan 1-104
+channel-group 20 mode active
+channel-protocol lacp
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
