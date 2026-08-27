@@ -1,4 +1,4 @@
-
+A1
 conf t
 
 int e0/0
@@ -9,19 +9,14 @@ vlan 101
 Name Floor 1
 
 int vlan 101
+no sh
+
 ip add 10.100.10.33 255.255.255.224
 ip dhcp exc 10.100.10.33 10.100.10.43
 ip dhcp pool floor1.com
 network 10.100.10.32 255.255.255.224
 default-router 10.100.10.33 255.255.255.224
-no sh
 
-
-A1
-conf t
-vlan 101
-name Floor1
-exit
 
 P1
 conf t
@@ -29,7 +24,7 @@ int e0/0
 ip add dhcp
 no sh
 
-A1
+A2
 
 conf t
 
@@ -81,6 +76,26 @@ conf t
 int e1/0
 ip add dhcp
 no sh
+
+D1
+
+conf t
+
+int e1/0
+sw mo acc
+sw acc vlan 102
+
+vlan 102
+name Floor 2
+
+int vlan 102
+no sh
+ip add 10.100.10.65 255.255.255.224
+ip dhcp exc 10.100.10.65 10.100.10.75
+ip dhcp pool floor3.com
+network 10.100.10.64 255.255.255.224
+default-router 10.100.10.65 255.255.255.224
+
 
 
 
