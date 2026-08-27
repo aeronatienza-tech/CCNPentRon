@@ -6,14 +6,14 @@ sw mo acc
 sw acc vlan 101
 
 vlan 101
-Floor 1
+Name Floor 1
 
 int vlan 101
 ip add 10.100.10.33 255.255.255.224
 ip dhcp exc 10.100.10.33 10.100.10.43
 ip dhcp pool floor1.com
 network 10.100.10.32 255.255.255.224
-default-router 10.100.10.33 255
+default-router 10.100.10.33 255.255.255.224
 no sh
 
 
@@ -37,7 +37,7 @@ int e1/0
 sw mo acc
 sw acc vlan 103
 
-vlan 102
+vlan 103
 name Floor 3
 
 int vlan 103
