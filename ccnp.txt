@@ -1,6 +1,6 @@
 A1
 conf t
-
+ip routing
 int e0/0
 sw mo acc
 sw acc vlan 101
@@ -15,7 +15,7 @@ ip add 10.100.10.33 255.255.255.224
 ip dhcp exc 10.100.10.33 10.100.10.43
 ip dhcp pool floor1.com
 network 10.100.10.32 255.255.255.224
-default-router 10.100.10.33 255.255.255.224
+default-router 10.100.10.33
 
 
 P1
@@ -27,7 +27,7 @@ no sh
 A2
 
 conf t
-
+ip routing
 int e1/0
 sw mo acc
 sw acc vlan 103
@@ -41,7 +41,7 @@ ip add 10.100.10.97 255.255.255.224
 ip dhcp exc 10.100.10.97 10.100.10.107
 ip dhcp pool floor3.com
 network 10.100.10.96 255.255.255.224
-default-router 10.100.10.97 255.255.255.224
+default-router 10.100.10.97
 
 
 P2
@@ -55,7 +55,7 @@ no sh
 D2
 
 conf t
-
+ip routing
 int e1/0
 sw mo acc
 sw acc vlan 104
@@ -69,7 +69,7 @@ ip add 10.100.10.129 255.255.255.224
 ip dhcp exc 10.100.10.129 10.100.10.139
 ip dhcp pool floor4.com
 network 10.100.10.128 255.255.255.224
-default-router 10.100.10.129 255.255.255.224
+default-router 10.100.10.129
 
 S2
 conf t
@@ -80,7 +80,7 @@ no sh
 D1
 
 conf t
-
+ip routing
 int e1/0
 sw mo acc
 sw acc vlan 102
@@ -92,9 +92,9 @@ int vlan 102
 no sh
 ip add 10.100.10.65 255.255.255.224
 ip dhcp exc 10.100.10.65 10.100.10.75
-ip dhcp pool floor3.com
+ip dhcp pool floor2.com
 network 10.100.10.64 255.255.255.224
-default-router 10.100.10.65 255.255.255.224
+default-router 10.100.10.65
 
 
 
