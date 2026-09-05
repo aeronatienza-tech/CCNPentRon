@@ -1,0 +1,214 @@
+C        10.2.2.0/24 is directly connected, Vlan20
+C        192.168.1.128/27 is directly connected, Vlan100
+
+
+
+conf t
+router eigrp ccnp
+ address-family ipv4 unicast autonomous-system 100
+  network 10.2.2.0 0.0.0.255
+  network 192.168.1.128 0.0.0.31
+ exit-address-family
+ end
+
+P1
+conf t
+int e0/0
+ no sh
+ ip add 10.2.1.101 255.255.255.0
+end
+
+P2
+conf t
+int e1/0
+ no sh
+ ip add 10.2.1.102 255.255.255.0
+end
+
+A1
+conf t
+int e0/0
+ no sh
+ sw mode acc
+ sw acc vlan 10
+ do sh vlan br
+end
+
+A2
+conf t
+int e1/0
+ no sh
+ sw mode acc
+ sw acc vlan 10
+ do sh vlan br
+end
+
+CCNP(PACKET SNIFF) VS CCNA (CONFIG)
+
+R4
+config t
+no ip routing
+ip routing
+router OSPF 1
+router-id 4.4.4.4
+exit
+int e3/3
+no shutdown
+ip add 208.8.8.100 255.255.255.0
+ip ospf 1 area 0
+exit
+router eigrp 100
+network 208.8.8.0 0.0.0.255
+end
+
+K1 - BW
+K2 - Reliability
+K3 - Delay
+K4 - Loading
+K5 - MTU
+
+C1
+config t
+router eigrp 100
+ no auto-summary
+ network 10.1.4.4 0.0.0.3
+ network 10.2.1.0 0.0.0.255
+ network 10.2.2.0 0.0.0.255
+ network 192.168.1.128 0.0.0.31
+end
+
+default routes for:
+
+P1
+conf t
+ip route 0.0.0.0 0.0.0.0 10.2.1.1 1
+ip route 0.0.0.0 0.0.0.0 10.2.1.2 5 
+
+P2
+conf t
+ip route 0.0.0.0 0.0.0.0 10.2.1.1 2
+ip route 0.0.0.0 0.0.0.0 10.2.1.2 1
+
+A1
+conf t
+router eigrp CCNPLEVEL
+address-family ipv4 unicast autonomous-system 100
+  topology base
+  exit-af-topology
+  network 192.168.1.131 0.0.0.0
+  network 172.17.0.1 0.0.0.0
+  network 172.18.0.1 0.0.0.0
+  network 172.19.0.1 0.0.0.0
+  network 172.20.0.1 0.0.0.0
+  network 172.21.0.1 0.0.0.0
+ exit-address-family 
+end
+
+A2
+conf t
+router eigrp CCNPLEVEL
+address-family ipv4 unicast autonomous-system 100
+  !
+  topology base
+  exit-af-topology
+  network 192.168.1.132 0.0.0.0
+ exit-address-family
+
+ask2: advance EIGRP CCNP Commands:
+
+A1
+config t
+int lo 17
+ip add 172.17.0.1 255.255.0.0
+int lo 18
+ip add 172.18.0.1 255.255.0.0
+int lo 19
+ip add 172.19.0.1 255.255.0.0
+int lo 20
+ip add 172.20.0.1 255.255.0.0
+int lo 21
+ip add 172.21.0.1 255.255.0.0
+
+A1
+conf t
+router eigrp CCNPLEVEL
+address-family ipv4 unicast autonomous-system 100
+  topology base
+  exit-af-topology
+  network 192.168.1.131 0.0.0.0
+  network 172.17.0.1 0.0.0.0
+  network 172.18.0.1 0.0.0.0
+  network 172.19.0.1 0.0.0.0
+  network 172.20.0.1 0.0.0.0
+  network 172.21.0.1 0.0.0.0
+ exit-address-family 
+end
+
+C1#
+show ip route eigrp
+5 D Loopback
+NO SUMMARIZATION NO CCNP
+
+How to ROUTE SUMMARIZE IN EIGRP,OSPF, BGP:
+
+  network 172.17.0.1/16
+  network 172.18.0.1/16 
+  network 172.19.0.1/16  --> 172.16.0.0/13
+  network 172.20.0.1/16 
+  network 172.21.0.1/16
+
+ccc method: count, compare, check:
+              5    <8I 0,8,16,24
+                  or 16I 
+
+A1: exam 32bit eigrp:
+conf t
+int vlan 100
+ ip summary-address eigrp 100 172.16.0.0 255.248.0.0
+end
+
+Task 3: SUPER BASIC BGP
+ - /24 public IP
+- 2/3 Telco @2MBPS CIR:
+- PUBLIC ASN number
+
+R1 configure basic bgp 32 bits
+conf t
+router bgp 1
+bgp router-id 1.1.1.1
+bgp log-neighbor-changes
+neighbor 208.8.8.4 remote-as 34
+neighbor 207.7.7.2 remote-as 2
+neightbor 209.9.9.3 remote-as 3
+network 208.8.8.0 mask 255.255.255.0
+network 207.7.7.0 mask 255.255.255.0
+network 209.9.9.0 mask 255.255.255.0
+network 10.1.1.0 mask 255.255.255.252
+end
+
+R2 configure basic bgp 64 bits
+conf t
+router bgp 1
+bgp router-id 1.1.1.1
+bgp log-neighbor-changes
+address-family ipv4 unicast 
+neighbor 208.8.8.4 remote-as 45
+neighbor 207.7.7.2 remote-as 2
+neightbor 209.9.9.3 remote-as 3
+neighbor 208.8.8.4 activate
+neighbor 207.7.7.2 activate
+neightbor 209.9.9.3 activate
+network 208.8.8.0 mask 255.255.255.0
+network 207.7.7.0 mask 255.255.255.0
+network 209.9.9.0 mask 255.255.255.0
+network 10.1.1.0 mask 255.255.255.252
+exit-address-family
+end
+
+
+
+
+
+
+
+
