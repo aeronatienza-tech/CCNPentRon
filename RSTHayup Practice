@@ -13,6 +13,227 @@ int e1/0
 end
 
 !A1
+conf t
+int e0/0
+no shutdown
+switchport mode access
+switchport access vlan 10
+end
+sh vlan br
+
+!A2
+conf t
+int e1/0
+no shutdown
+switchport mode access
+switchport access vlan 10
+end
+sh vlan br
+
+!C1
+conf t
+int e1/0
+no shutdown
+switchport mode access
+switchport access vlan 100
+end
+sh vlan br
+
+!C2
+conf t
+int e1/0
+no shutdown
+switchport mode access
+switchport access vlan 20
+end
+sh vlan br
+
+!A1
+conf t
+int range e0/1, e0/2
+channel-group 10 mode active
+channel-protocol lacp
+
+int range e0/3, e1/0
+channel-group 15 mode active
+channel-protocol lacp
+end
+sh etherchannel summary
+
+!A2
+conf t
+int range e0/1, e0/2
+channel-group 20 mode active
+channel-protocol lacp
+
+int range e0/0, e0/3
+channel-group 25 mode active
+channel-protocol lacp
+end
+sh etherchannel summary
+
+!C1
+conf t
+int range e0/1, e0/2
+channel-group 10 mode active
+channel-protocol lacp
+
+int range e0/0, e0/3
+channel-group 20 mode active
+channel-protocol lacp
+
+int range e1/2, e1/3
+channel-group 30 mode active
+channel-protocol lacp
+end
+sh etherchannel summary
+
+!C2
+conf t
+int range e0/1, e0/2
+channel-group 15 mode active
+channel-protocol lacp
+
+int range e0/0, e0/3
+channel-group 25 mode active
+channel-protocol lacp
+
+int range e1/2, e1/3
+channel-group 30 mode active
+channel-protocol lacp
+end
+sh etherchannel summary
+
+Default Routes
+
+!A1
+conf t
+ip route 0.0.0.0 0.0.0.0 192.168.1.129 1
+ip route 0.0.0.0 0.0.0.0 192.168.1.130 2
+end
+sh ip route static
+
+!A2
+conf t
+ip route 0.0.0.0 0.0.0.0 192.168.1.129 2
+ip route 0.0.0.0 0.0.0.0 192.168.1.130 1
+end
+sh ip route static
+
+!p1
+conf t
+ip route 0.0.0.0  0.0.0.0 10.2.1.1 1
+ip route 0.0.0.0  0.0.0.0 10.2.1.2 2
+end
+sh ip route static
+
+p2:
+conf t
+ip route 0.0.0.0  0.0.0.0 10.2.1.2 1
+ip route 0.0.0.0  0.0.0.0 10.2.1.1 2
+end
+sh ip route static
+
+Configure EIGRP
+!D1
+conf t
+router EIGRP CCNP
+address-family ipv4 unicast autonomous-system 100
+network 10.1.4.6 0.0.0.0
+network 10.2.1.1 0.0.0.0
+network 10.2.2.1 0.0.0.0
+network 192.168.1.129 0.0.0.0
+end
+
+!D2
+conf t
+router EIGRP CCNP
+address-family ipv4 unicast autonomous-system 100
+network 10.1.4.10 0.0.0.0
+network 10.2.1.2 0.0.0.0
+network 10.2.2.2 0.0.0.0
+network 192.168.1.130 0.0.0.0
+end
+
+!R4
+conf t
+router EIGRP CCNP
+address-family ipv4 unicast autonomous-system 100
+network 10.1.4.5 0.0.0.0
+network 10.1.4.9 0.0.0.0
+end
+
+Configure OSPF P2P,BDR,DR,DROTHER
+
+!R4
+conf t
+router ospf 1
+ router-id 4.4.4.4
+end
+conf t
+int e1/2
+no sh
+ip add 10.1.1.10 255.255.255.0
+ip ospf 1 area 34
+ip ospf network point-to-point
+end
+
+!R3
+conf t
+router ospf 1
+ router-id 3.3.3.3
+int e1/2
+no sh
+ip add 10.1.1.9 255.255.255.0
+ip ospf 1 area 34
+ip ospf network point-to-point
+exit
+int e1/1
+no sh
+ip add 10.1.1.6 255.255.255.0
+ip ospf 1 area 0
+ip ospf priority 200
+router ospf 1
+network 10.1.1.4 0.0.0.3 area 0
+end
+
+!R2
+conf t
+router ospf 1
+ router-id 2.2.2.2
+exit
+int e1/1
+no sh
+ip add 10.1.1.5 255.255.255.252
+ip ospf 1 area 0
+ip ospf priority 255
+exit
+int e1/2
+no sh
+ip add 10.1.1.2 255.255.255.252
+ip ospf 1 area 12
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
