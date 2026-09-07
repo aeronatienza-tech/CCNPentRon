@@ -179,7 +179,7 @@ bgp router-id 1.1.1.1
 bgp log-neighbor-changes
 neighbor 208.8.8.4 remote-as 34
 neighbor 207.7.7.2 remote-as 2
-neightbor 209.9.9.3 remote-as 3
+neighbor 209.9.9.3 remote-as 3
 network 208.8.8.0 mask 255.255.255.0
 network 207.7.7.0 mask 255.255.255.0
 network 209.9.9.0 mask 255.255.255.0
@@ -194,7 +194,7 @@ bgp log-neighbor-changes
 address-family ipv4 unicast 
 neighbor 208.8.8.4 remote-as 45
 neighbor 207.7.7.2 remote-as 2
-neightbor 209.9.9.3 remote-as 3
+neighbor 209.9.9.3 remote-as 3
 neighbor 208.8.8.4 activate
 neighbor 207.7.7.2 activate
 neightbor 209.9.9.3 activate
