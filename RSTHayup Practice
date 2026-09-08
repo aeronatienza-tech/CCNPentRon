@@ -30,7 +30,7 @@ switchport access vlan 10
 end
 sh vlan br
 
-!C1
+!D1
 conf t
 int e1/0
 no shutdown
@@ -39,7 +39,7 @@ switchport access vlan 100
 end
 sh vlan br
 
-!C2
+!D2
 conf t
 int e1/0
 no shutdown
@@ -72,7 +72,7 @@ channel-protocol lacp
 end
 sh etherchannel summary
 
-!C1
+!D1
 conf t
 int range e0/1, e0/2
 channel-group 10 mode active
@@ -88,7 +88,7 @@ channel-protocol lacp
 end
 sh etherchannel summary
 
-!C2
+!D2
 conf t
 int range e0/1, e0/2
 channel-group 15 mode active
@@ -147,7 +147,7 @@ end
 
 !D2
 conf t
-router EIGRP CCNP
+router EIGRP 100
 address-family ipv4 unicast autonomous-system 100
 network 10.1.4.10 0.0.0.0
 network 10.2.1.2 0.0.0.0
@@ -157,8 +157,8 @@ end
 
 !R4
 conf t
-router EIGRP CCNP
-address-family ipv4 unicast autonomous-system 100
+router EIGRP 100
+no auto-summary
 network 10.1.4.5 0.0.0.0
 network 10.1.4.9 0.0.0.0
 end
@@ -224,6 +224,104 @@ no sh
 ip add 10.1.1.1 255.255.255.252
 ip ospf 1 area 12
 ip ospf priority 0
+end
+
+!CONFIGURE BGP
+
+!R1
+conf t
+router bgp 1
+bgp router-id 1.1.1.1
+bgp log-neighbor-changes
+address-family ipv4 unicast
+neighbor 207.7.7.2 remote-as 2
+neighbor 208.8.8.4 remote-as 45
+neighbor 209.9.9.3 remote-as 3
+neighbor 207.7.7.2 activate
+neighbor 208.8.8.4 activate
+neighbor 209.9.9.3 activate
+network 207.7.7.0 mask 255.255.255.0
+network 207.8.8.0 mask 255.255.255.0
+network 207.9.9.0 mask 255.255.255.0
+network 10.1.1.0 mask 255.255.255.0
+exit-address-family
+end
+
+!ISP1
+conf t
+router bgp 45
+bgp log-neighbor-changes
+address-family ipv4 unicast
+neighbor 24.2.4.2 remote-as 2
+neighbor 208.8.8.1 remote-as 1
+neighbor 45.4.5.5 remote-as 45
+neighbor 24.2.4.2 activate
+neighbor 208.8.8.1 activate
+neighbor 45.4.5.5 activate
+network 24.2.4.2 mask 255.255.255.0
+network 208.8.8.0 mask 255.255.255.0
+network 45.4.5.0 mask 255.255.255.0
+exit-address-family
+end
+
+!ISP2
+config t
+router bgp 2
+bgp log-neighbor-changes
+neighbor 24.2.4.4 remote-as 45
+neighbor 25.2.5.5 remote-as 45
+neighbor 32.3.2.3 remote-as 3
+neighbor 207.7.7.1 remote-as 1
+network 207.0.0.0 mask 255.255.255.0
+network 22.22.22.22 mask 255.255.255.255
+network 24.2.4.0 mask 255.255.255.0
+network 25.2.5.0 mask 255.255.255.0
+network 32.3.2.0 mask 255.255.255.0
+end
+
+!ISP3
+conf t
+router bgp 3
+bgp log-neighbor-changes
+neighbor 32.3.2.2 remote-as 2
+neighbor 35.3.5.5 remote-as 45
+neighbor 209.9.9.1 remote-as 1
+network 209.9.9.0
+network 32.3.2.0 mask 255.255.255.0
+network 33.33.33.33 mask 255.255.255.255
+network 35.3.5.0 mask 255.255.255.0
+network 0.0.0.0
+end
+
+!ISP4/Google DNS
+config t
+router bgp 45
+ bgp log-neighbor-changes
+ neighbor 25.2.5.2 remote-as 2
+ neighbor 35.3.5.3 remote-as 3
+ neighbor 45.4.5.4 remote-as 45
+ network 8.8.8.8 mask 255.255.255.255
+ network 55.55.55.55 mask 255.255.255.255
+ network 25.2.5.0 mask 255.255.255.0
+ network 35.3.5.0 mask 255.255.255.0
+ network 45.4.5.0 mask 255.255.255.0
+end
+
+REDISTRIBUTION OF ROUTING
+!R4
+conf t
+router ospf 1
+redistribute eigrp 100 subnets
+exit
+router eigrp CCNP
+redistribute ospf 1 metric 1544 2000 255 1 1500
+end
+
+R1:
+!redistrubte internet routes to ospf from BGP.
+config t
+router ospf 1
+ default-information originate
 end
 
 
