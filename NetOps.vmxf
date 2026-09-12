@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<Foundry>
+<VM>
+<VMId type="string">52 6f 69 66 c1 69 f5 78-d2 a8 34 5c 77 bd d5 2f</VMId>
+<ClientMetaData>
+<clientMetaDataAttributes/>
+<HistoryEventList/></ClientMetaData>
+<vmxPathName type="string">NetOps.vmx</vmxPathName></VM></Foundry>
