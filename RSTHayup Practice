@@ -258,7 +258,7 @@ neighbor 45.4.5.5 remote-as 45
 neighbor 24.2.4.2 activate
 neighbor 208.8.8.1 activate
 neighbor 45.4.5.5 activate
-network 24.2.4.2 mask 255.255.255.0
+network 24.2.4.0 mask 255.255.255.0
 network 208.8.8.0 mask 255.255.255.0
 network 45.4.5.0 mask 255.255.255.0
 exit-address-family
