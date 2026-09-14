@@ -147,7 +147,7 @@ end
 
 !D2
 conf t
-router EIGRP 100
+router EIGRP CCNP
 address-family ipv4 unicast autonomous-system 100
 network 10.1.4.10 0.0.0.0
 network 10.2.1.2 0.0.0.0
@@ -157,8 +157,8 @@ end
 
 !R4
 conf t
-router EIGRP 100
-no auto-summary
+router EIGRP CCNP
+address-family ipv4 unicast autonomous-system 100
 network 10.1.4.5 0.0.0.0
 network 10.1.4.9 0.0.0.0
 end
