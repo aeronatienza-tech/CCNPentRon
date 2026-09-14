@@ -314,6 +314,8 @@ router ospf 1
 redistribute eigrp 100 subnets
 exit
 router eigrp CCNP
+address-family ipv4 unicast autonomous-system 100
+topology base
 redistribute ospf 1 metric 1544 2000 255 1 1500
 end
 
