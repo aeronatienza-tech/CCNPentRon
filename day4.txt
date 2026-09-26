@@ -1,0 +1,382 @@
+!@R1
+
+conf t
+zone security INSIDE
+zone security OUTSIDE
+zone security DMZ
+!
+int g1
+zone-member security OUTSIDE
+int g3
+zone-member security INSIDE
+!
+ip access-list extended ACL-ALL
+permit ip any any
+!
+class-map type inspect match-all CM-ALL
+match access-group name ACL-ALL
+!
+policy-map type inspect PM-IN-OUT
+class type inspect CM-ALL
+inspect
+class class-default
+drop log
+!
+policy-map type inspect PM-OUT-IN
+class type inspect CM-ALL
+drop
+class class-default
+drop log
+!
+zone-pair security ZP-OUT-IN source OUTSIDE destination INSIDE
+service-policy type inspect PM-OUT-IN
+zone-pair security ZP-IN-OUT source INSIDE destination OUTSIDE
+service-policy type inspect PM-IN-OUT
+end
+
+
+TASK: Allow 208.8.8.1 to access only the PCs
+!@R1
+conf t
+ip access-list extended HOSTPC
+permit ip host 208.8.8.1 10.3.0.0 0.0.0.255
+!
+class-map type inspect match-all CM-HOSTPC
+match access-group name HOSTPC
+!
+policy-map type inspect PM-OUT-IN
+class type inspect CM-HOSTPC
+inspect
+no class type inspect CM-ALL
+class type inspect CM-ALL
+drop
+end
+
+
+PORT forward the ff:
+
+!@R1
+conf t
+ int g1
+  ip nat outside
+ int range g3
+  ip nat inside
+ !
+ ip access-list extended NAT
+  permit ip 10.3.0.0 0.0.0.255 any
+  exit
+ !
+ ip nat inside source list NAT int g1 overload
+ ip nat inside source static tcp 10.3.0.101 80  208.8.8.100 8080
+ ip nat inside source static tcp 10.3.0.101 443 208.8.8.100 8443
+ ip nat inside source static tcp 10.3.0.101 22  208.8.8.100 2201
+ ip nat inside source static tcp 10.3.0.102 80  208.8.8.100 80
+ ip nat inside source static tcp 10.3.0.102 443 208.8.8.100 443
+ ip nat inside source static tcp 10.3.0.102 22  208.8.8.100 2202
+ ip nat inside source static tcp 10.3.0.103 80  208.8.8.100 6980
+ ip nat inside source static tcp 10.3.0.103 443 208.8.8.100 6969
+ ip nat inside source static tcp 10.3.0.103 22  208.8.8.100 2203
+ end
+
+EXERCISE 2
+!@R1
+conf t
+ ip access-list extended ALLOW-PC61 
+  permit tcp host 208.8.8.61 host 10.3.0.101 eq 80
+
+ ip access-list extended ALLOW-PC62
+   permit tcp host 208.8.8.62 host 10.3.0.102 eq 443
+
+ ip access-list extended ALLOW-PCNET
+ permit tcp 208.8.8.0 0.0.0.255 10.3.0.0 0.0.0.255 eq 22
+
+ !
+ class-map type inspect match-all CM-PC61-HTTP
+  match protocol http
+  match access-group name ALLOW-PC61
+  exit
+ class-map type inspect match-all CM-PC62-HTTPS
+  match protocol https
+  match access-group name ALLOW-PC62
+  exit
+ class-map type inspect match-all CM-PCNET-SSH
+  match protocol ssh
+  match access-group name ALLOW-PCNET
+  exit
+ !
+ policy-map type inspect PM-OUT-DMZ
+  class type inspect CM-PC61-HTTP
+  inspect
+  class type inspect CM-PC62-HTTPS
+  inspect
+  class type inspect CM-PCNET-SSH
+   inspect
+  no class type inspect CM-ALL
+  class type inspect CM-ALL
+   drop log
+  class class-default
+   drop log
+   end
+
+
+conf t
+ ip access-list extended ALLOW-1
+permit tcp host 208.8.8.1 10.3.0.0 0.0.0.255 eq 22
+ ip access-list extended ALLOW-61
+permit tcp host 208.8.8.61 host 10.3.0.102 eq 80
+
+ ip access-list extended ALLOW-62
+permit tcp host 208.8.8.62 host 10.3.0.103 eq 443
+
+ !
+ class-map type inspect match-all ALLOW-1
+match protocol ssh
+ match access-group name ALLOW-1
+  exit
+ class-map type inspect match-all ALLOW-61
+match protocol http
+ match access-group name ALLOW-61
+  exit
+ class-map type inspect match-all ALLOW-62
+match protocol https
+match access-group name ALLOW-62
+
+  exit
+ !
+ policy-map type inspect PM-OUT-DMZ
+  class type inspect ALLOW-1
+inspect
+  class type inspect ALLOW-61
+inspect
+  class type inspect ALLOW-62
+inspect
+  no class type inspect CM-ALL
+  class type inspect CM-ALL
+   drop log
+  class class-default
+   drop log
+   end
+
+
+Elastics: 208.8.8.133:5601
+login: root
+pass: C1sc0123
+
+!@R1
+conf t
+service timestamps log datetime msec
+service sequence-number
+!
+archive
+ log config
+notify syslog
+ip nat log translations syslog bind-only
+logging host 192.168.102.133 transport udp port 9001
+logging source-interface g2
+logging on
+end
+
+user: admin
+pass: C1sc0123
+
+
+configuring a time-based ACL
+!@R1
+conf t
+time-range TIME
+ periodic weekend 11:22 to 11:28
+ip access-list extended ACL-TIME
+permit icmp host 10.3.0.101 host 208.8.8.1 time-range TIME
+permit ospf any any
+int g3
+ip access-group ACL-TIME in
+end
+
+**remove acl in g3
+int g3
+no ip access-group ACL-TIME in
+end
+
+ip.src==10.3.0.0/24 || icmp
+
+
+TASK
+Markings
+
+!@R3
+conf t
+ip access-list extended ACL-PCS
+permit ip 10.3.0.0 0.0.0.255 any
+!
+class-map match-any CM-MAIL-PROT
+match protocol smtp
+match protocol imap
+match protocol pop3
+class-map match-all CM-MAIL
+match access-group name ACL-PCS
+match class-map CM-MAIL-PROT
+class-map match-any CM-REMOTE-PROT
+match protocol ssh
+match protocol telnet
+class-map match-all CM-REMOTE
+match access-group name ACL-PCS
+match class-map CM-REMOTE-PROT
+!
+policy-map PM-QOS
+class CM-MAIL
+set dscp CS1
+class CM-REMOTE
+set dscp CS2
+class class-default
+set dscp AF11
+!
+int g3
+service-policy input PM-QOS
+
+
+!@R1
+conf t
+ class-map match-any CM-NOC-TRAFFIC
+  match dscp CS1
+ class-map match-any CM-SOC-TRAFFIC
+  match dscp CS2
+ class-map match-any CM-HR-TRAFFIC
+  match dscp CS3
+ !
+ policy-map PM-TRAFFIC
+  class CM-NOC-TRAFFIC
+   shape average 640000
+  class CM-SOC-TRAFFIC
+   shape average 480000
+  class CM-HR-TRAFFIC
+   police 240000 bc 8000 be 8000 
+    conform-action transmit  
+	exceed-action drop
+  class class-default
+   shape average 800000
+ !
+ int g1
+  service-policy output PM-TRAFFIC
+  end
+sh policy-map int g1  
+
+
+
+
+CONGESTION AVOIDANCE
+!@R1-EDGE
+conf t
+ class-map match-all VIP
+  match dscp CS1
+ class-map match-all NORMAL
+  match dscp CS2
+ class-map match-all SCAVENGE
+  match dscp CS3
+ !
+ NO policy-map PM5
+ policy-map PM5
+  class VIP
+   priority 640              
+  class NORMAL
+   shape average 400000
+   !
+   bandwidth 160                
+   random-detect dscp-based  
+   random-detect ecn          
+  class SCAVENGE
+   shape average 400000
+   !
+   bandwidth 80                
+   random-detect dscp-based
+   random-detect ecn
+   !
+   random-detect dscp CS2 
+  class class-default
+   !
+ int g1
+  service-policy output PM5
+  end
+
+
+CoPP
+!@R1
+conf t
+service udp-small-servers
+service tcp-small-servers
+service finger
+ip dns server
+ip http server
+ip http secure-server
+end
+
+
+TELNET - Drop
+SSH 10 KB/s 8000
+HTTPS 25KB/s 200000
+
+!@R1
+conf t
+ip access-list extended ACL2-SSH
+permit tcp any any eq 22
+ip access-list extended ACL2-TELNET
+permit tcp any any eq 23
+ip access-list extended ACL2-HTTPS
+permit tcp any any eq 443
+!
+class-map match-all CM2-SSH
+match access-group name ACL2-SSH
+no match protocol ssh
+class-map match-all CM2-TELNET
+match access-group name ACL2-TELNET
+no match protocol telnet
+class-map match-all CM2-HTTPS
+match access-group name ACL2-HTTPS
+no match protocol https
+!
+policy-map PM2-COPP
+class CM2-SSH 
+police 8000
+conform-action transmit
+exceed-action drop
+class CM2-TELNET
+police 8000
+conform-action drop
+exceed-action drop
+class CM2-HTTPS
+police 200000
+conform-action drop
+exceed-action drop
+
+control-plane
+service-policy input PM2-COPP
+end
+
+Radius Config
+
+@R1
+conf t
+username admin privilege 15 secret pass
+aaa new-model
+radius server WINRAD
+address ipv4 208.8.8.8 auth-port 1812 acct-port 1813
+key keykeymo
+aaa group server radius RADGROUP
+server name WINRAD
+aaa authentication login default group RADGROUP local
+aaa authorization exec default group RADGROUP local
+line vty 0 14
+login authentication default
+end
+
+AGDLP
+
+
+conf t
+ router eigrp CCNPLEVEL
+  address-family ipv4 unicast autonomous-system 100
+   network 10.1.4.8 0.0.0.3
+   network 10.2.1.0 0.0.0.255
+   network 10.2.2.0 0.0.0.255
+   network 192.168.1.128 0.0.0.31
+   end
+
